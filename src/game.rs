@@ -1,9 +1,11 @@
 use piston_window::*;
-use crate::snake::Snake;
-use crate::board::Board;
-use crate::app::Component;
-use crate::snake::SnakeComponent;
-use crate::board::BoardComponent;
+use crate:: {
+    snake::Snake,
+    board::Board,
+    app::Component,
+    snake::SnakeComponent,
+    board::BoardComponent,
+};
 
 pub enum Direction {
     Up, Down, Left, Right,
@@ -11,11 +13,11 @@ pub enum Direction {
 
 pub struct Game {
     snake: Snake,
-    board: Board,
+    board: Board
 }
 
 pub trait GameComponent: Component {
-    fn new() -> Game;
+    fn new(window_size: (f64, f64)) -> Game;
     fn key_pressed(&mut self, key: Key);
 }
 
@@ -32,16 +34,16 @@ impl Component for Game {
 }
 
 impl GameComponent for Game {
-    fn new() -> Game {
+    fn new(window_size: (f64, f64)) -> Game {
         Game {
-            snake: Snake::new(),
-            board: Board::new(),
+            snake: Snake::new(window_size),
+            board: Board::new()
         }
     }
 
     fn key_pressed(&mut self, key: Key) {
         self.snake.direction = match key {
-            Key::Up | Key::W => Direction::Up,
+            Key::Up | Key::W => Direction::Up, 
             Key::Down | Key::S => Direction::Down,
             Key::Left | Key::A => Direction::Left,
             Key::Right | Key::D => Direction::Right,

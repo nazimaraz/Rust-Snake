@@ -29,6 +29,7 @@ impl App {
         let window_settings = WindowSettings::new(&self.window_name, [window_size_x, window_size_y])
             .exit_on_esc(true);
         self.window = window_settings.build().unwrap();
+        self.window_size = (window_size_x, window_size_y);
         return self;
     }
 
@@ -39,7 +40,7 @@ impl App {
 
     pub fn run(&mut self) {        
         // Create the game
-        let mut game = Game::new();
+        let mut game = Game::new(self.window_size);
 
         while let Some(event) = self.window.next() {
             if let Some(Button::Keyboard(key)) = event.press_args() {
