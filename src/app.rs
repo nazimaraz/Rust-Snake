@@ -1,6 +1,12 @@
 use piston_window::*;
 use piston_window::types::Color;
 use crate::game::Game;
+use crate::game::GameComponent;
+
+pub trait Component {
+    fn update(&mut self, delta_time: f64);
+    fn draw(&self, context: &Context, g2d: &mut G2d);
+}
 
 pub struct App {
     window: PistonWindow,
@@ -10,17 +16,17 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(window_name: &str, (window_size_x, window_size_y): (f64, f64)) -> App {
+    pub fn new(window_name: &str) -> App {
         App {
             window: WindowSettings::new("", [0.0, 0.0]).build().unwrap(),
             window_name: window_name.to_string(),
-            window_size: (window_size_x, window_size_y),
+            window_size: (100.0, 100.0),
             background_color: [0.0, 0.0, 0.0, 1.0],
         }
     }
 
-    pub fn create_window(&mut self) -> &mut Self {
-        let window_settings = WindowSettings::new(&self.window_name, [self.window_size.0, self.window_size.1])
+    pub fn create_window(&mut self, (window_size_x, window_size_y): (f64, f64)) -> &mut Self {
+        let window_settings = WindowSettings::new(&self.window_name, [window_size_x, window_size_y])
             .exit_on_esc(true);
         self.window = window_settings.build().unwrap();
         return self;
