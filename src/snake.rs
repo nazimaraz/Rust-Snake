@@ -13,6 +13,7 @@ pub struct Snake {
     pub snake_body: Vec<Position>,
     window_size: (f64, f64),
     pub direction: Direction,
+    pub direction_input: Direction,
     size: Size,
     color: Color,
     movement_duration: f64,
@@ -34,9 +35,11 @@ impl Component for Snake {
     }
     
     fn draw(&self, context: &Context, g2d: &mut G2d) {
-        for body_part in &self.snake_body {
-            rectangle([0.0, 0.0, 0.0, 1.0], [body_part.x-0.5, body_part.y-0.5, self.size.x+1., self.size.y+1.], context.transform, g2d);
-            rectangle(self.color, [body_part.x, body_part.y, self.size.x, self.size.y], context.transform, g2d);
+        for i in 0..self.snake_body.len() {
+            let color = if i == 0 { [0.0, 1.0, 0.0, 1.0] } else { self.color };
+            let body_part: &Position = &self.snake_body[i];
+            rectangle([0.0, 0.0, 0.0, 1.0], [body_part.x-0.5, body_part.y - 0.5, self.size.x + 1.0, self.size.y + 1.0], context.transform, g2d);
+            rectangle(color, [body_part.x, body_part.y, self.size.x, self.size.y], context.transform, g2d);
         }
     }
 }
@@ -53,6 +56,7 @@ impl SnakeComponent for Snake {
             ],
             window_size,
             direction: Direction::Right,
+            direction_input: Direction::Right,
             size: Size { x: BLOCK_SIZE, y: BLOCK_SIZE },
             color: [0.5, 0.5, 0.5, 1.0],
             movement_duration: 0.1,
@@ -74,6 +78,26 @@ impl SnakeComponent for Snake {
         }
 
         let head: &mut Position = &mut self.snake_body[0];
+        match (&self.direction_input, &self.direction) {
+            (Direction::Right, Direction::Up | Direction::Down) => {
+                self.direction_input = Direction::Right;
+                self.direction = Direction::Right;
+            },
+            (Direction::Left, Direction::Up | Direction::Down) => {
+                self.direction_input = Direction::Left;
+                self.direction = Direction::Left;
+            },
+            (Direction::Up, Direction::Right | Direction::Left) => {
+                self.direction_input = Direction::Up;
+                self.direction = Direction::Up;
+            },
+            (Direction::Down, Direction::Right | Direction::Left) => {
+                self.direction_input = Direction::Down;
+                self.direction = Direction::Down;
+            },
+            (_, _) => {},
+        }
+
         match self.direction {
             Direction::Up => head.y -= BLOCK_SIZE,
             Direction::Down => head.y += BLOCK_SIZE,
