@@ -2,6 +2,7 @@ mod app;
 mod game;
 mod snake;
 mod board;
+mod fruit;
 
 use app::App;
 

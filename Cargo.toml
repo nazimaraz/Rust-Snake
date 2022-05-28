@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 piston_window = "*"
+rand = "0.8.4"

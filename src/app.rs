@@ -52,7 +52,7 @@ impl App {
             });
 
             self.window.draw_2d(&event, |context, g2d, _| {
-                clear(self.background_color, g2d);
+                // clear(self.background_color, g2d);
                 game.draw(&context, g2d);
             });
         }

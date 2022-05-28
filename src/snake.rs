@@ -2,21 +2,17 @@ use piston_window::*;
 use piston_window::types::Color;
 use crate::game::Direction;
 use crate::app::Component;
-
-const BLOCK_SIZE: f64 = 10.0;
-
-struct Position {
-    x: f64, y: f64,
-}
+use crate::game::Position;
+use crate::game::BLOCK_SIZE;
 
 struct Size {
     x: f64, y: f64,
 }
 
 pub struct Snake {
+    pub snake_body: Vec<Position>,
     window_size: (f64, f64),
     pub direction: Direction,
-    position: Position,
     size: Size,
     color: Color,
     movement_duration: f64,
@@ -26,6 +22,7 @@ pub struct Snake {
 pub trait SnakeComponent: Component {
     fn new(window_size: (f64, f64)) -> Self;
     fn handle_movement(&mut self);
+    fn is_collide(&mut self) -> bool;
     fn is_ready_for_move(&mut self) -> bool;
     fn movement(&mut self);
 }
@@ -37,16 +34,25 @@ impl Component for Snake {
     }
     
     fn draw(&self, context: &Context, g2d: &mut G2d) {
-        rectangle(self.color, [self.position.x, self.position.y, self.size.x, self.size.y], context.transform, g2d);
+        for body_part in &self.snake_body {
+            rectangle([0.0, 0.0, 0.0, 1.0], [body_part.x-0.5, body_part.y-0.5, self.size.x+1., self.size.y+1.], context.transform, g2d);
+            rectangle(self.color, [body_part.x, body_part.y, self.size.x, self.size.y], context.transform, g2d);
+        }
     }
 }
 
 impl SnakeComponent for Snake {
     fn new(window_size: (f64, f64)) -> Self {
         Self {
-            window_size: window_size,
+            snake_body: vec![
+                Position { x: 125.0, y: 25.0 },
+                Position { x: 100.0, y: 25.0 },
+                Position { x: 75.0, y: 25.0 },
+                Position { x: 50.0, y: 25.0 },
+                Position { x: 25.0, y: 25.0 },
+            ],
+            window_size,
             direction: Direction::Right,
-            position: Position { x: 10.0, y: 5.0 },
             size: Size { x: BLOCK_SIZE, y: BLOCK_SIZE },
             color: [0.5, 0.5, 0.5, 1.0],
             movement_duration: 0.1,
@@ -62,20 +68,37 @@ impl SnakeComponent for Snake {
     }
 
     fn movement(&mut self) {
-        match self.direction {
-            Direction::Up => self.position.y -= BLOCK_SIZE,
-            Direction::Down => self.position.y += BLOCK_SIZE,
-            Direction::Right => self.position.x += BLOCK_SIZE,
-            Direction::Left => self.position.x -= BLOCK_SIZE,
+        for i in (1..self.snake_body.len()).rev() {
+            self.snake_body[i].x = self.snake_body[i - 1].x;
+            self.snake_body[i].y = self.snake_body[i - 1].y;
         }
 
-        self.position.x = if self.position.x > self.window_size.0 - BLOCK_SIZE { 0.0 }
-            else if self.position.x < 0.0 { self.window_size.0 - BLOCK_SIZE }
-            else { self.position.x };
+        let head: &mut Position = &mut self.snake_body[0];
+        match self.direction {
+            Direction::Up => head.y -= BLOCK_SIZE,
+            Direction::Down => head.y += BLOCK_SIZE,
+            Direction::Right => head.x += BLOCK_SIZE,
+            Direction::Left => head.x -= BLOCK_SIZE,
+        }
 
-        self.position.y = if self.position.y > self.window_size.1 - BLOCK_SIZE { 0.0 }
-            else if self.position.y < 0.0 { self.window_size.1 - BLOCK_SIZE }
-            else { self.position.y };
+        head.x = if head.x > self.window_size.0 - BLOCK_SIZE { 0.0 }
+            else if head.x < 0.0 { self.window_size.0 - BLOCK_SIZE }
+            else { head.x };
+
+        head.y = if head.y > self.window_size.1 - BLOCK_SIZE { 0.0 }
+            else if head.y < 0.0 { self.window_size.1 - BLOCK_SIZE }
+            else { head.y };
+    }
+
+    fn is_collide(&mut self) -> bool {
+        let head: &Position = &self.snake_body[0];
+        for i in 1..self.snake_body.len() {
+            let body_part: &Position = &self.snake_body[i];
+            if self.snake_body.len() > 4 && head.x == body_part.x && head.y == body_part.y {
+                return true
+            }
+        }
+        false
     }
 
     fn is_ready_for_move(&mut self) -> bool {
